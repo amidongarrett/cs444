@@ -1,0 +1,251 @@
+\documentclass[letterpaper,10pt,titlepage,draftclsnofoot,onecolumn]{IEEEtran}
+
+\usepackage{graphicx}                                        
+\usepackage{amssymb}                                         
+\usepackage{amsmath}                                         
+\usepackage{amsthm}                                          
+
+\usepackage{alltt}                                           
+\usepackage{float}
+\usepackage{color}
+\usepackage{url}
+\usepackage{listings}
+
+\usepackage{balance}
+\usepackage[TABBOTCAP, tight]{subfigure}
+\usepackage{enumitem}
+\usepackage{pstricks, pst-node}
+
+\usepackage{geometry}
+\usepackage{titling}
+\geometry{textheight=8.5in, textwidth=6in}
+
+%random comment
+
+\newcommand{\cred}[1]{{\color{red}#1}}
+\newcommand{\cblue}[1]{{\color{blue}#1}}
+
+\usepackage{hyperref}
+\usepackage{geometry}
+
+\def\name{Garrett Amidon}
+
+%pull in the necessary preamble matter for pygments output
+\input{pygments.tex}
+
+%% The following metadata will show up in the PDF properties
+\hypersetup{
+  colorlinks = true,
+  urlcolor = black,
+  pdfauthor = {\name},
+  pdfkeywords = {cs311 ``operating systems'' files filesystem I/O},
+  pdftitle = {CS 311 Project 1: UNIX File I/O},
+  pdfsubject = {CS 311 Project 1},
+  pdfpagemode = UseNone
+}
+
+\title{Assignment 1}
+\author{Garrett Amidon}
+
+\begin{document}
+\begin{titlingpage}
+    \maketitle
+	\centering{}
+    \begin{abstract}
+        This assignment was about building and developing a kernel envirnoment as well as working on coding in parallel using pthreads. 
+    \end{abstract}
+\end{titlingpage}
+\section{Command Log}
+\begin{enumerate}
+\item cd /scratch/spring2016
+\item mkdir CS444-007
+\item cd CS444-007
+\item git clone git://git.yoctoproject.org/linux-yocto-3.14
+\item git checkout v3.14.26
+\item source /scratch/opt/environment-setup-i586-poky-linux.csh
+\item cp /scratch/spring2016/files/bzImage-qemux86.bin
+\item cp /scratch/spring2016/files/core-image-lsb-sdk-qemux86.ext3 
+\item cp /scratch/spring2016/files/config-3.14.26-yocto-qemu.config
+\item make -j4 all
+\item qemu-system-i386 -gdb tcp::5507 -S -nographic -kernel bzImage-qemux86.bin -drive file=core-image-lsb-sdk-qemux86.ext3,if=virtio -enable-kvm -net none -usb -localtime --no-reboot --append "root=/dev/vda rw console=ttyS0 debug"
+\item opened new putty
+\item gdb
+\item target remote:5507
+\item continue
+\end{enumerate}
+\section{Qemu Flag Defintions}
+\subsection{-gdb tcp::5507}
+open a gdbserver on TCP port 5507
+\subsection{-S}
+Do not start the cpu on start up
+\subsection{-nographic}
+Disable graphical output so that qemu is a simple command line application
+\subsection{-kernel bzImage-qemux86.bin }
+Use bzImage-qemux86.bin as a kernel image
+\subsection{-drive file=core-image-lsb-sdk-qemux86.ext3,if=virtio }
+Define a new drive with the file set for the disk image if the drive is connected.
+\subsection{-enable-kvm }
+Enable KVM full virtualization support
+\subsection{-net none }
+Indicate that no network devices should be configured
+\subsection{-usb }
+Enable the USB driver
+\subsection{-localtime }
+Specify the RTC to start at current local time
+\subsection{--no-reboot}
+Exit instead of rebooting 
+\subsection{--append "root=/dev/vda rw console=ttyS0 debug"}
+Use root=/dev/vda rw console=ttyS0 debug as command line
+
+
+
+\section{Concurrency Questions}
+\subsection{What do you think the main point of this assignment is?}
+The main point of this assignment I believe was to test my ability to code in parallel using pthreads. The assignment challenged my programming skills and this assignment was also a wakeup call to how much work this class actually will be. 
+\subsection{How did you personally approach the problem? Design decisions, algorithm, etc.}
+To start, I looked up creating "Hello World" using pthreads because I was not taught how to use a pthread, just normal threads. After familiarizing myself with pthreads on a basic level, I then looked up the pthread library to see the different functionality of a pthread. From there I read about conditional pthreads and mutex variables. 
+\subsection{How did you ensure your solution was correct?}
+To ensure my solution was correct, I tested using 1 as my buffer size max so I could test that the producer would not keep adding to the buffer when it was full and the consumer would not try to remove from the buffer when nothing was there. The first few times I ran this, my program would halt when the buffer reached maximum size. I then narrowed my issue down to the producer function and found that I was not signaling my consumer when there was more data in the buffer.
+\subsection{What did you learn?}
+I learned that I need to start the coding assignments sooner. I had built the kernel last week and figured that the rest of the assignment would not be that bad, I was wrong. I also learned a considerable amount about conditional pthreads and mutex variables. 
+
+
+
+\section{Version Control Log}
+
+\begin{tabular}{|| c c c c c}
+\hline
+Date & Commit & Insertions % Deletions & Message
+\hline
+
+
+
+
+
+
+
+
+\section{Work Log}
+\begin{itemize}
+\item Saturday 4/2 - Started working on building the kernel. Worked for about 3 hours trying to figure out what the assignment was asking and trying (failing) multiples times in building the kernel. I finally resorted to actually reading the book (surprise it is helpful) and figured out I was not copying the files and sourcing correctly.
+\item Thursday 4/7 - Started working on the concurrency exercise. I worked for about 4 hours reading on mutex variables and pthread conditionals and looking at examples of how to use them. I then looked at the class resources on the webpage and found the appropriate file needed for the random function.
+\item Monday 4/11 - I now have realized I should not have put this assignment off for so long and have been working for 6 hours finishing the concurrency exercise as well as this write up. I still have no clue how to do the git repo as a latex table so this number will probably increase.  
+Edit: I worked for 3 more hours.
+
+
+\end{itemize}
+\section{Source Code}
+\lstset{language=C,
+                basicstyle=\ttfamily,
+                keywordstyle=\color{blue}\ttfamily,
+                stringstyle=\color{red}\ttfamily,
+                commentstyle=\color{green}\ttfamily,
+                morecomment=[l][\color{magenta}]{\#}
+}
+\begin{lstlisting}
+#include <stdio.h>
+#include <pthread.h>
+#include <time.h>
+#include "mt19937ar.c"
+
+#define MAX 32       
+pthread_mutex_t control;
+pthread_cond_t conditionalCons, conditionalProd;
+
+struct passData{
+	int value;
+	int wait;
+};	
+
+struct passData buffer[MAX];
+int bufferLength = 0;
+
+/*----------------------------------------
+Function: consumer
+Description: This function is what the 
+consumer thread will call. The function
+checks to make sure the buffer isn't empty,
+and if it is empty, will wait for the producer 
+to add a data set to the buffer.
+-----------------------------------------*/
+
+void* consumer(void *ptr) 
+{
+	int i;
+	while(1){
+		pthread_mutex_lock(&control);
+		while (bufferLength <= 0){
+			printf("Buffer is empty waiting for producer... \n");
+			pthread_cond_wait(&conditionalCons, &control);
+		}
+		pthread_mutex_unlock(&control);	
+		sleep(buffer[bufferLength-1].wait);
+
+		pthread_mutex_lock(&control); 
+		printf("Consumer: Consumed item with value %d, Buffer at %d\n", buffer[bufferLength-1].value, bufferLength-1);
+		bufferLength--;
+		pthread_cond_signal(&conditionalProd);
+		pthread_mutex_unlock(&control); 
+	}
+	pthread_exit(0);
+}
+
+/*----------------------------------------
+Function: producer
+Description: This function is what the 
+producer thread will call. The function
+checks to make sure the buffer isn't full,
+and if it is empty, will wait for the  
+consumer to use a data set on the buffer
+before adding a new one. 
+-----------------------------------------*/
+
+void* producer(void *ptr) 
+{
+	int i;
+	int wait;  
+	while(1) {
+		wait = (genrand_int32() % 5) + 3; //sleep for 3-7 seconds before producing
+		sleep(wait);
+		pthread_mutex_lock(&control);
+		while(bufferLength == (MAX)){
+			printf("Buffer full waiting for consumer... \n");
+			pthread_cond_wait(&conditionalProd, &control);	
+		}	
+		buffer[bufferLength].wait = (genrand_int32() % 8) + 2; 
+		buffer[bufferLength].value = genrand_int32() % 100;  
+		bufferLength++;
+		printf("Producer: Produced item with value %d. Buffer at %d \n", buffer[bufferLength-1].value, bufferLength);
+		pthread_cond_signal(&conditionalCons); 
+		pthread_mutex_unlock(&control); 
+
+	}
+	pthread_exit(0);
+}
+
+int main(int argc, char **argv) 
+{
+	pthread_t produce, consume;
+	init_genrand(time(NULL));
+
+	pthread_mutex_init(&control, NULL);
+	pthread_cond_init(&conditionalCons, NULL); 
+	pthread_cond_init(&conditionalProd, NULL); 
+
+
+	pthread_create(&consume, NULL, consumer, NULL);
+	pthread_create(&produce, NULL, producer, NULL);
+
+	pthread_join(consume, NULL);
+	pthread_join(produce, NULL);
+
+	pthread_mutex_destroy(&control); 
+	pthread_cond_destroy(&conditionalCons); 
+	pthread_cond_destroy(&conditionalProd); 
+
+}
+
+\end{lstlisting} 
+%input the pygmentized output of mt19937ar.c, using a (hopefully) unique name
+%this file only exists at compile time. Feel free to change that.
+\end{document}
