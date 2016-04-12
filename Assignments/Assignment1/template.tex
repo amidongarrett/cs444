@@ -1,5 +1,5 @@
 \documentclass[letterpaper,10pt,titlepage,draftclsnofoot,onecolumn]{IEEEtran}
-
+\linespread{1}
 \usepackage{graphicx}                                        
 \usepackage{amssymb}                                         
 \usepackage{amsmath}                                         
@@ -75,7 +75,8 @@
 \item target remote:5507
 \item continue
 \end{enumerate}
-\section{Qemu Flag Defintions}
+\section{Qemu Flag Defintions} 
+Found using \cite{qemu_flags}
 \subsection{-gdb tcp::5507}
 open a gdbserver on TCP port 5507
 \subsection{-S}
@@ -105,7 +106,7 @@ Use root=/dev/vda rw console=ttyS0 debug as command line
 \subsection{What do you think the main point of this assignment is?}
 The main point of this assignment I believe was to test my ability to code in parallel using pthreads. The assignment challenged my programming skills and this assignment was also a wakeup call to how much work this class actually will be. 
 \subsection{How did you personally approach the problem? Design decisions, algorithm, etc.}
-To start, I looked up creating "Hello World" using pthreads because I was not taught how to use a pthread, just normal threads. After familiarizing myself with pthreads on a basic level, I then looked up the pthread library to see the different functionality of a pthread. From there I read about conditional pthreads and mutex variables. 
+To start, I looked up creating "Hello World" using pthreads because I was not taught how to use a pthread, just normal threads. After familiarizing myself with pthreads on a basic level, I then looked up the pthread library to see the different functionality of a pthread and also researched the problem \cite{sOverflow}. From there I read about conditional pthreads and mutex variables. 
 \subsection{How did you ensure your solution was correct?}
 To ensure my solution was correct, I tested using 1 as my buffer size max so I could test that the producer would not keep adding to the buffer when it was full and the consumer would not try to remove from the buffer when nothing was there. The first few times I ran this, my program would halt when the buffer reached maximum size. I then narrowed my issue down to the producer function and found that I was not signaling my consumer when there was more data in the buffer.
 \subsection{What did you learn?}
@@ -265,5 +266,6 @@ int main(int argc, char **argv)
 }
 
 \end{lstlisting} 
-
+\bibliographystyle{IEEEtran}
+\bibliography{template}
 \end{document}

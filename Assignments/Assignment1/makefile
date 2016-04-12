@@ -9,6 +9,9 @@ all: writeup
 
 writeup:
 	latex template.tex
+	bibtex template
+	latex template.tex
+	latex template.tex 
 	dvips -R -Poutline -t letter template.dvi -o template.ps
 	ps2pdf template.ps
 	gcc -lpthread concurrent1.c -o project1
