@@ -8,9 +8,9 @@ GH		= gv
 all: writeup
 
 writeup:
-	latex week2.tex
-	dvips -R -Poutline -t letter week2.dvi -o week2.ps
-	ps2pdf week2.ps
+	latex week3.tex
+	dvips -R -Poutline -t letter week3.dvi -o week3.ps
+	ps2pdf week3.ps
 
 clean:
 	rm -f *.pdf *.ps *.dvi *.out *.log *.aux *.bbl *.blg *.pyg
