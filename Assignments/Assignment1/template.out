@@ -1,0 +1,22 @@
+\BOOKMARK [1][-]{section.1}{Command Log}{}
+\BOOKMARK [1][-]{section.2}{Qemu Flag Defintions}{}
+\BOOKMARK [2][-]{subsection.2.1}{-gdb tcp::5507}{section.2}
+\BOOKMARK [2][-]{subsection.2.2}{-S}{section.2}
+\BOOKMARK [2][-]{subsection.2.3}{-nographic}{section.2}
+\BOOKMARK [2][-]{subsection.2.4}{-kernel bzImage-qemux86.bin }{section.2}
+\BOOKMARK [2][-]{subsection.2.5}{-drive file=core-image-lsb-sdk-qemux86.ext3,if=virtio }{section.2}
+\BOOKMARK [2][-]{subsection.2.6}{-enable-kvm }{section.2}
+\BOOKMARK [2][-]{subsection.2.7}{-net none }{section.2}
+\BOOKMARK [2][-]{subsection.2.8}{-usb }{section.2}
+\BOOKMARK [2][-]{subsection.2.9}{-localtime }{section.2}
+\BOOKMARK [2][-]{subsection.2.10}{--no-reboot}{section.2}
+\BOOKMARK [2][-]{subsection.2.11}{--append "root=/dev/vda rw console=ttyS0 debug"}{section.2}
+\BOOKMARK [1][-]{section.3}{Concurrency Questions}{}
+\BOOKMARK [2][-]{subsection.3.1}{What do you think the main point of this assignment is?}{section.3}
+\BOOKMARK [2][-]{subsection.3.2}{How did you personally approach the problem? Design decisions, algorithm, etc.}{section.3}
+\BOOKMARK [2][-]{subsection.3.3}{How did you ensure your solution was correct?}{section.3}
+\BOOKMARK [2][-]{subsection.3.4}{What did you learn?}{section.3}
+\BOOKMARK [1][-]{section.4}{Version Control Log}{}
+\BOOKMARK [1][-]{section.5}{Work Log}{}
+\BOOKMARK [1][-]{section.6}{Source Code}{}
+\BOOKMARK [1][-]{section*.1}{References}{}
