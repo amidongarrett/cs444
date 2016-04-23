@@ -1,0 +1,215 @@
+\documentclass[letterpaper,10pt,titlepage,draftclsnofoot,onecolumn]{IEEEtran}
+\linespread{1}
+\usepackage{graphicx}                                        
+\usepackage{amssymb}                                         
+\usepackage{amsmath}                                         
+\usepackage{amsthm}                                          
+
+\usepackage{alltt}                                           
+\usepackage{float}
+\usepackage{color}
+\usepackage{url}
+\usepackage{listings}
+
+\usepackage{balance}
+\usepackage[TABBOTCAP, tight]{subfigure}
+\usepackage{enumitem}
+\usepackage{pstricks, pst-node}
+
+\usepackage{geometry}
+\usepackage{titling}
+\geometry{textheight=8.5in, textwidth=6in}
+
+
+\newcommand{\cred}[1]{{\color{red}#1}}
+\newcommand{\cblue}[1]{{\color{blue}#1}}
+
+\usepackage{hyperref}
+\usepackage{geometry}
+
+\def\name{Garrett Amidon}
+
+%pull in the necessary preamble matter for pygments output
+\input{pygments.tex}
+
+%% The following metadata will show up in the PDF properties
+\hypersetup{
+  colorlinks = true,
+  urlcolor = black,
+  pdfauthor = {\name},
+  pdfkeywords = {cs444 ''operating systems 2'' files filesystem I/O},
+  pdftitle = {CS 444 Project 1: Getting Acquainted},
+  pdfsubject = {CS 444 Project 1},
+  pdfpagemode = UseNone
+}
+
+\title{CS444: Writing Assignment 1 \\
+	\large Spring 2016}
+\author{Garrett Amidon}
+
+
+\begin{document}
+\begin{titlingpage}
+    \maketitle
+	\centering{}
+\end{titlingpage}
+\section{Introduction}
+
+A process is a program in execution. A process has an address space containing the program's object and variables. A process may have one or many different threads. Threads are representations of virtual processors that have register states and its own stack. A scheduler determines which process has priority to make sure each process can finish in a particular order by a deadline. \cite{FreeBSD} Throughout this paper I will show how Windows, FreeBSD and Linux implement them and how they similar or different. 
+
+\section{Windows}
+
+\subsection{Threads}
+
+
+In Windows, threads are represented by an executive thread, or ETHREAD, structure.  A threads is created by using a system call. The main system call that will be used if using C++ will be CreateThread(...). The call will then call PspAllocateThread, PspInsertThread and KeStartThread. PspAllocateThread handles the actual creation and initialization of the executive thread object itself. PspInsertThread handles the creation of the thread handle and security attributes. KeStartThread then turns the executive object into a schedulable  thread on the system. \cite{Windows} Below you will see an example of how CreateThread is called in C++.
+
+
+%----------------------------------------------------------------------------
+% CreateThread CODE
+\lstset{language=C++,
+                basicstyle=\ttfamily,
+                keywordstyle=\color{blue}\ttfamily,
+                stringstyle=\color{red}\ttfamily,
+                commentstyle=\color{green}\ttfamily,
+                morecomment=[l][\color{magenta}]{\#}
+}
+\begin{lstlisting}
+ hThreadArray[i] = CreateThread( 
+            NULL,                   // default security attributes
+            0,                      // use default stack size  
+            MyThreadFunction,       // thread function name
+            pDataArray[i],          // argument to thread function 
+            0,                      // use default creation flags 
+            &dwThreadIdArray[i]);   // returns the thread identifier 
+\end{lstlisting}
+%----------------------------------------------------------------------------
+
+
+When CreateThead is called, it sets the parameters into flags and builds the structure accordingly. It does this by building a list with 2 entries named clientID and TEBaddress. It then calls NtCreateThreadEx to create a user-mode thread and capture the list. Then, as mentioned above, PspCreateThread is called. Once this executive object is created, CreateThread allocates an activation stack and saves it into the TEBaddress. CreateThread then notifies Windows to let it know the new thread is created and available and is then used by the subsystem. 
+
+
+\subsection{Processes}
+
+
+In windows, processes are represented by an executive process, or EPROCESS, structure. These processes contain and points to other related data structures, such as ETHREADS. A process may contain one or more ETHREADs, depending on what the process is doing. For each process that is executed in a Win32 program, the Win32 subsystem process, or the Csrss, maintains a parallel structure called the CSR-PROCESS.\cite{Windows} To create a process, it is carried out in three parts of the operating system, which are the Windows client-side library Kernel, the Windows executive, and the Windows subsystem process. To create a process in windows using c++ you must use the CreateProcess function call.  Below is an example of the function call with its parameters. 
+
+
+%----------------------------------------------------------------------------
+% CreateProcess CODE 
+\lstset{language=C++,
+                basicstyle=\ttfamily,
+                keywordstyle=\color{blue}\ttfamily,
+                stringstyle=\color{red}\ttfamily,
+                commentstyle=\color{green}\ttfamily,
+                morecomment=[l][\color{magenta}]{\#}
+}
+\begin{lstlisting}
+// Start the child process. 
+    if( !CreateProcess( NULL,   // No module name (use command line)
+        argv[1],        // Command line
+        NULL,           // Process handle not inheritable
+        NULL,           // Thread handle not inheritable
+        FALSE,          // Set handle inheritance to FALSE
+        0,              // No creation flags
+        NULL,           // Use parent's environment block
+        NULL,           // Use parent's starting directory 
+        &si,            // Pointer to STARTUPINFO structure
+        &pi )           // Pointer to PROCESS_INFORMATION structure
+    ) 
+\end{lstlisting}
+%----------------------------------------------------------------------------
+
+Once this function is called it goes through a series of steps to make sure everything is valid before creating the process. The first step is validating the parameters to make sure the flags and options are valid and then creating them in to their native counterparts. It then opens the specified image, or exe, file to be executed in the process. It then creates the Windows executive process object. It then creates the initial thread because each process must contain at least one thread. Now that Windows executive object has been created, it then passes it to the subsystem process to be initialized. After initialization, the initial thread is then executed. After execution of the initial thread, the program is then executed. 
+
+
+\subsection{CPU Scheduling}
+
+Scheduling was first introduced to Windows in 2003. It was introduced by "Windows Server 2003" and it determined priority by per-CPU scheduling queues. \cite{Windows} This method made it so thread scheduling decisions could occur in parallel using multiple processors. Windows then made its scheduler more advanced in 7 and Server 2008 R2 by eliminating the global locking on the scheduling database. To eliminate the global locking due to a multiprocessor system having one processor that needed to modify another processor's per-CPU scheduling data structure, they created a new structure. This structure is synchronized by using a per-PRCB queued spinlock, and is held at DISPATCH-LEVEL. This made it so thread selection could occur while locking an individual processor's PRCB. \cite{Windows} 
+
+\section{FreeBSD}
+
+\subsection{Threads}
+
+The threads that the process use will either be in user mode or kernel mode (User threads and Kernel Threads). In user mode, a thread executes application code with the machine in a non-privileged protection mode. When a thread requests services from the operating system with a system call, it switches into the machine's privileged protection mode via a protected mechanism and then operates in kernel mode. \cite{FreeBSD} 
+
+When in User Mode, when implementing there is no installation required because it is included with the base OS. User Mode threads are done using p-threads, so when coding in C, you must include the pthread library and compile using the -lpthread command.\cite{FreeBSD2} The code below shows how to implement a pthread and to run a function. \cite{pthread}
+
+%----------------------------------------------------------------------------
+% Pthread CODE 
+\lstset{language=C++,
+                basicstyle=\ttfamily,
+                keywordstyle=\color{blue}\ttfamily,
+                stringstyle=\color{red}\ttfamily,
+                commentstyle=\color{green}\ttfamily,
+                morecomment=[l][\color{magenta}]{\#}
+}
+\begin{lstlisting}
+ pthread_t t1;
+ pthread_create(&t1, NULL, &print_message, NULL);
+//where &t1 is a pointer to the pthread you wish to use 
+//&print_message is a pointer to the function you wan thte pthread to run. 
+\end{lstlisting} \cite{pthread}
+
+%----------------------------------------------------------------------------
+
+When in Kernel Mode, these threads are compiled using kernel threads or kthreads. When implementing, the user must install the linuxthreads package. After this step, when coding in C, you  must include the <linuxthreads/pthread.h> library and compile using -L /usr/local/lib -llthread- -llgcc-r-(?). \cite{FreeBSD2} The code below shows how to implement a kthread and to run a function. \cite{kernel_thread}
+
+%----------------------------------------------------------------------------
+% Kthread CODE 
+\lstset{language=C++,
+                basicstyle=\ttfamily,
+                keywordstyle=\color{blue}\ttfamily,
+                stringstyle=\color{red}\ttfamily,
+                commentstyle=\color{green}\ttfamily,
+                morecomment=[l][\color{magenta}]{\#}
+}
+\begin{lstlisting}
+int thread_function(void *data); //Function to be ran by kthread
+
+struct task_struct *kthread_create(int (*thread_function)(void *data),
+                                       void *data,
+				       const char *namefmt, ...); // function to create kthread
+					   
+struct task_struct *kthread_run(int (*thread_function)(void *data),
+                                    void *data,
+				    const char *namefmt, ...); // function to create and run kthread
+					
+int kthread_stop(struct task_struct *thread); // function to stop and exit kthread
+\end{lstlisting}
+
+%----------------------------------------------------------------------------
+
+\subsection{Processes}
+
+Processes in FreeBSD are implemented using the fork calls in C++. The fork system call creates a new (child) process. This child process is exactly the same as the parent process except that it has its own unique process ID. The child process also has it's parents process ID and its own copy of the parent's descriptors. The below code is how it is used in C++. This call will create a new child process and set the child process id into cpid. From here you can do what it is you need to do with another process.  
+
+
+%----------------------------------------------------------------------------
+% Fork CODE 
+\lstset{language=C++,
+                basicstyle=\ttfamily,
+                keywordstyle=\color{blue}\ttfamily,
+                stringstyle=\color{red}\ttfamily,
+                commentstyle=\color{green}\ttfamily,
+                morecomment=[l][\color{magenta}]{\#}
+}
+\begin{lstlisting}
+cpid = fork();
+\end{lstlisting}
+
+%----------------------------------------------------------------------------
+
+
+\subsection{CPU Scheduling}
+
+FreeBSD has fair scheduling of threads and processes. This fair scheduling is an involved task that is dependent on the type of executable program and the goal of the scheduling policy. \cite{FreeBSD} FreeBSD has a default scheduler called the timeshare scheduler and a real-time scheduler. The timeshare scheduler gives priority based on a periodic calculation based on CPU time that has been used and the amount of memory resources it uses. It also gives priority in favor of interactive programs, like text editors, due to the fact they may be active in bash but only exhibit short bursts of computation followed by periods of being idle. Real-time scheduling requires a more precise control. It ensures that threads finish computing their results based on a particular order or deadline. 
+
+
+
+\section{Conclusion}
+
+In conclusion, Windows and FreeBSD implement processes, threads and scheduling very differently. But how do these two compare to Linux? If you look just at the operating systems as a whole, you would notice that FreeBSD and Linux are very similar. The only difference is that BSD can execute most Linux binaries, while Linux cannot execute BSD binaries. \cite{BSD} But if you compare processes, they both use fork as the main route of creating processes. The difference in threads is that in Linux you already have the kernel thread library so there is no need to install the library as you need to do in FreeBSD. For scheduling, it depends on the version of Linux you are using but it typically only uses time sharing for scheduling. The big difference is in Windows and Linux. As a whole, Linux tends to be open source and Windows is not. Windows uses functions such as CreateThread and CreateProcess, whereas Linux uses fork and pthreads. Where they are similar in these regards is that both support multiprocessing and both have a scheduler that exists. 
+\bibliographystyle{IEEEtran}
+\bibliography{writing1}
+\end{document}

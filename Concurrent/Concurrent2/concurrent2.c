@@ -3,8 +3,7 @@
 #include <pthread.h>
 #include <time.h>
 #include <semaphore.h>
-#include  <stdio.h>
-#include  <signal.h>
+#include <signal.h>
 
 #define NUM_PHIL 5
 
