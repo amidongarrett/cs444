@@ -1,0 +1,166 @@
+\documentclass[letterpaper,10pt,titlepage,draftclsnofoot,onecolumn]{IEEEtran}
+\linespread{1}
+\usepackage{graphicx}                                        
+\usepackage{amssymb}                                         
+\usepackage{amsmath}                                         
+\usepackage{amsthm}                                          
+
+\usepackage{alltt}                                           
+\usepackage{float}
+\usepackage{color}
+\usepackage{url}
+\usepackage{listings}
+
+\usepackage{balance}
+\usepackage[TABBOTCAP, tight]{subfigure}
+\usepackage{enumitem}
+\usepackage{pstricks, pst-node}
+
+\usepackage{geometry}
+\usepackage{titling}
+\geometry{textheight=8.5in, textwidth=6in}
+
+
+\newcommand{\cred}[1]{{\color{red}#1}}
+\newcommand{\cblue}[1]{{\color{blue}#1}}
+
+\usepackage{hyperref}
+\usepackage{geometry}
+
+\def\name{Garrett Amidon}
+
+%pull in the necessary preamble matter for pygments output
+\input{pygments.tex}
+
+%% The following metadata will show up in the PDF properties
+\hypersetup{
+  colorlinks = true,
+  urlcolor = black,
+  pdfauthor = {\name},
+  pdfkeywords = {cs444 ''operating systems 2'' files filesystem I/O},
+  pdftitle = {CS 444 Project 1: Getting Acquainted},
+  pdfsubject = {CS 444 Project 1},
+  pdfpagemode = UseNone
+}
+
+\title{CS444: Writing Assignment 2 \\
+	\large Spring 2016}
+\author{Garrett Amidon}
+
+
+\begin{document}
+\begin{titlingpage}
+    \maketitle
+	\centering{}
+    \begin{abstract}
+        This writing is about what I/O scheduling is and how Windows and FreeBSD implements them and what the key components of each are and how they relate to each other and the Linux environment.   
+    \end{abstract}
+\end{titlingpage}
+\section{Introduction}
+
+I/O scheduling, disk scheduling, is the method the computers decide the order the block I/O operations are stored on the storage volumes. Throughout this paper I will show how Windows and FreeBSD implement their I/O scheduling system and how they similar or different. 
+
+\section{Windows}
+
+\subsection{I/O Processing}
+
+To start, there are different stages of the I/O processing and they depend on if the request is destined for a single-layered driver or for a device that is reached through a multilayer driver. Most of the I/O operations in Windows are synchronous which means the application thread will wait while the device performs the data operations and returns a status when it completes. \cite{Windows} Asynchronous I/O allow an application to issue multiple I/O requests and continue executing while the device performs the I/O operation. To use asynchronous I/O, you must specify the FILE-FLAG-OVERLAPPED flag when you call the CreateFile function.
+
+\lstset{language=C++,
+                basicstyle=\ttfamily,
+                keywordstyle=\color{blue}\ttfamily,
+                stringstyle=\color{red}\ttfamily,
+                commentstyle=\color{green}\ttfamily,
+                morecomment=[l][\color{magenta}]{\#}
+}
+\begin{lstlisting}
+HANDLE WINAPI CreateFile(
+  _In_     LPCTSTR               lpFileName,
+  _In_     DWORD                 dwDesiredAccess,
+  _In_     DWORD                 dwShareMode,
+  _In_opt_ LPSECURITY_ATTRIBUTES lpSecurityAttributes,
+  _In_     DWORD                 dwCreationDisposition,
+  _In_     DWORD                 dwFlagsAndAttributes,
+  _In_opt_ HANDLE                hTemplateFile
+); 
+\end{lstlisting}\cite{create_file}
+
+Above is the implementation of the CreateFile function. CreateFile is the function used to create or open a file or I/O device. As mentioned before, this is where you would specify the asynchronous flag if you wish to do so. Once you have your file descriptor implemented, the windows scheduler processes these descriptors in a C-LOOK. It implements this by using calls to KeInsertByKeyDeviceQueue and KeRemoveByKeyDeviceQueue functions. Once the list has requests, the drivers will iterate through the list from lowest sector to highest until they reach the end. 
+
+\section{FreeBSD}
+
+\subsection{I/O Scheduler}
+In FreeBSD, they use a standard C-LOOK elevator to handle I/O requests. This elevator is efficient but cannot grant fairness among clients of the disk subsystem. Because of the flaw, certain access patterns of I/O request processes might completely starve other processes. \cite{FreeBSD}  
+
+\lstset{language=C++,
+                basicstyle=\ttfamily,
+                keywordstyle=\color{blue}\ttfamily,
+                stringstyle=\color{red}\ttfamily,
+                commentstyle=\color{green}\ttfamily,
+                morecomment=[l][\color{magenta}]{\#}
+}
+\begin{lstlisting}
+struct _disk_sched_interface {
+       struct _disk_sched_interface *next;
+       char *name;     /* symbolic name */
+       int refcount;   /* users of this scheduler */
+
+       void (*disksort)(struct buf_queue_head *head, struct buf *bp);
+       void (*remove)(struct buf_queue_head *head, struct buf *bp);
+       struct buf *(*get_first)(struct buf_queue_head *head);
+       void (*init)(struct buf_queue_head *head);
+       void (*delete)(struct buf_queue_head *head);
+       void (*load)(void);     /* load scheduler */
+       void (*unload)(void);   /* unload scheduler */
+};
+\end{lstlisting}\cite{FreeBSD2} 
+
+In the above code, it is the implementation of the stadard disk scheduler. The big difference being that FreeBsd has added additional features (delete, load and unload). Delete is used to release per-queue resources when a scheduler is not used and Load/unload is used to perform per-scheduler operations at load/unload times. Each time init is called, it will allocate a structure containing device info. The link to this structure will be through a file pointer. Each time a new disk scheduler is made, it requires a properly initialized descriptor followed by a SYSINIT call as shown below. \cite{FreeBSD2} 
+
+\lstset{language=C++,
+                basicstyle=\ttfamily,
+                keywordstyle=\color{blue}\ttfamily,
+                stringstyle=\color{red}\ttfamily,
+                commentstyle=\color{green}\ttfamily,
+                morecomment=[l][\color{magenta}]{\#}
+}
+\begin{lstlisting}
+static struct _disk_sched_interface foo_sched = {
+        .name= "foo",
+        .disksort= foo_disksort,
+        .remove= foo_remove,
+        .get_first= foo_first,
+};
+
+SYSINIT(fooload, SI_SUB_RUN_QUEUE, SI_ORDER_FIRST, disk_sched_load, &foo_sched)
+};
+\end{lstlisting}\cite{FreeBSD2} 
+
+There are multiple different types of file descriptors that are used for difference processes. These file descriptors types and uses are as follows:
+
+\begin{itemize}
+\item  VNODE - file or device
+\item  SOCKET - communication endpoint
+\item  PIPE - pipe
+\item  FIFO - named pipe
+\item  MQUEUE - POSIX message queue
+\item  KQUEUE - event queue
+\item  CRYPTO - cryptographic hardware
+\item  SHM - POSIX shared memory
+\item  SEM - POSIX semaphore
+\item  PTS - pseudo-teletype master device
+\item  DEV - device not reference by a vnode
+\item  PROCDESC - process
+\end{itemize}\cite{FreeBSD2} 
+
+These file descriptors are important because each data structure that is used to implement the I/O scheduler has one of these types. Also, there are multiple different flags that go along with these file descriptors that will tell the operating system whether to block or not or if the process will be asynchronous or synchronous. 
+
+\section{Conclusion}
+
+In conclusion, Windows and FreeBSD implement I/O scheduling differently when it comes to file descriptors, but when it comes to the actual I/O scheduling, they are similar. But how do these two compare to Linux? If you look just at the operating systems as a whole, you would notice that FreeBSD and Linux are very similar. The only difference is that BSD can execute most Linux binaries, while Linux cannot execute BSD binaries. When you look at how the file descriptors are made, FreeBSD makes you specify the type of descriptor in implementation and windows only makes you specify synch/asycnh. Where they are similar in these regards is that both use a C-LOOK type scheduler and allow synchronous and asynchronous descriptors.  
+
+
+
+\bibliographystyle{IEEEtran}
+\bibliography{writing2}
+\end{document}

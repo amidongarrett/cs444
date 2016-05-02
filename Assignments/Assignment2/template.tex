@@ -1,0 +1,113 @@
+\documentclass[letterpaper,10pt,titlepage,draftclsnofoot,onecolumn]{IEEEtran}
+\linespread{1}
+\usepackage{graphicx}                                        
+\usepackage{amssymb}                                         
+\usepackage{amsmath}                                         
+\usepackage{amsthm}                                          
+
+\usepackage{alltt}                                           
+\usepackage{float}
+\usepackage{color}
+\usepackage{url}
+\usepackage{listings}
+
+\usepackage{balance}
+\usepackage[TABBOTCAP, tight]{subfigure}
+\usepackage{enumitem}
+\usepackage{pstricks, pst-node}
+
+\usepackage{geometry}
+\usepackage{titling}
+\geometry{textheight=8.5in, textwidth=6in}
+
+%random comment
+
+\newcommand{\cred}[1]{{\color{red}#1}}
+\newcommand{\cblue}[1]{{\color{blue}#1}}
+
+\usepackage{hyperref}
+\usepackage{geometry}
+
+\def\name{Garrett Amidon}
+
+%pull in the necessary preamble matter for pygments output
+\input{pygments.tex}
+
+%% The following metadata will show up in the PDF properties
+\hypersetup{
+  colorlinks = true,
+  urlcolor = black,
+  pdfauthor = {\name},
+  pdfkeywords = {cs444 ''operating systems 2'' files filesystem I/O},
+  pdftitle = {CS 444 Project 1: Getting Acquainted},
+  pdfsubject = {CS 444 Project 1},
+  pdfpagemode = UseNone
+}
+
+\title{CS444: Assignment 2 \\
+	\large Spring 2016}
+\author{Garrett Amidon}
+
+
+\begin{document}
+\begin{titlingpage}
+    \maketitle
+	\centering{}
+    \begin{abstract}
+        This assignment was about building and developing a kernel environment as well as working on changing the default scheduler to be issf instead of noop.   
+    \end{abstract}
+\end{titlingpage}
+
+\section{Implementation}
+
+For my implementation I went to wikipedia for a general idea of what the sstf algorithm should look like. \cite{wiki} From there I learned that the scheduler maintains an incoming buffer of requests and it determines which request is closest to the current position of the head and services it next. I have a general idea of what the algorithm does but I still have no idea how to implement it. 
+
+\section{Questions}
+\subsection{What do you think the main point of this assignment is?}
+The main point of this assignment I believe was to test my ability to code an I/O scheduler and changing my default I/O scheduler in the kernel. It was also intended for me to make my first patch to the kernel. 
+\subsection{How did you personally approach the problem? Design decisions, algorithm, etc.}
+To start, I looked up the Noop algorithm in our block directory. From there I realized I had no idea what was going on so I tried to look up examples of other people's code. After finding plenty of examples and trying for countless hours to try to create my own algorithm, I did not reach a conclusive result. So instead, I have copied the Noop algorithm and add a print statement to see if I can at least switch the scheduler correctly. 
+\subsection{How did you ensure your solution was correct?}
+As mentioned above, my algorithm isn't correct. I had to decide to cut my loses where applicable and try to get what I believe is the main point of the assignment and that is to create a patch and change the scheduler. 
+\subsection{What did you learn?}
+I learned that I need to allocate more time to the assignment, although I allocated well over 30 hours. This is one of those things that I just cant seem to understand and I am paying the price. 
+
+
+
+\section{Version Control Log}
+
+\begin{tabular}{|| c c c c ||}
+\hline
+Date & Additions & Deletions & Message\\
+\hline
+4/20/2016 & 27 & 0 & Update makefile\\
+\hline
+4/20/2016 & 77 & 0 & Update Kconfig.iosched\\
+\hline
+4/20/2016 & 157 & 0 & Create sstf-iosched.c\\
+\hline
+4/27/2016 & 48 & 0 & Final Commit\\
+
+\hline 
+\end{tabular}
+
+
+
+
+
+\section{Work Log}
+\begin{itemize}
+\item Wednesday 4/20 - Started working on exploring the internet to see what algorithms exist already to see if I can wrap my head around the assignment. I have also tried to understand the noop algorithm. 4 hours. 
+\item Wednesday 4/20 - Started working on getting the kernel to change the i/o scheduler and have made changes to the kconfig.iosched and makefile. 5 hours
+\item Friday 4/22 - I am trying to get the assignment done by Monday but it is not looking well. From testing I have figured out that my code will compile and the the sstf is set to my default, but when making the kernel it is still making noop the default. I have no clue what to do. 6 hours 
+\item Monday 4/25 - I finally got the scheduler to default to issf. I don't know what changed but it's progress. 3 hours.
+\item Weds 4/27 - I have no clue how to do my algorithm so I ended up copying the noop algorithm and putting a print statement in it to show that I did in fact change the scheduler. 7 hours
+
+Total time: 25 hours
+
+
+\end{itemize}
+
+\bibliographystyle{IEEEtran}
+\bibliography{template}
+\end{document}
